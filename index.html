@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onchain Story - Your Web3 Journey, Minted</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .pulse-shadow {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4 bg-cover" style="background-image: url('https://placehold.co/1920x1080/0a0a0a/333333?text=.')">
+
+    <div id="app" class="w-full max-w-2xl mx-auto">
+        <div class="glass-card rounded-2xl p-6 md:p-10 text-center">
+            
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold mb-2">Your Onchain Story</h1>
+                <p class="text-gray-300">Enter your wallet address to generate and mint your web3 journey on Base.</p>
+            </div>
+
+            <!-- Input Section -->
+            <div id="inputSection" class="w-full max-w-lg mx-auto">
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input id="walletAddress" type="text" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-center" placeholder="yourname.eth or 0x...">
+                    <button id="generateBtn" class="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all duration-300 pulse-shadow">
+                        Generate Story
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="hidden my-8">
+                <div class="flex justify-center items-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+                    <p class="ml-4 text-gray-300">Analyzing your onchain saga...</p>
+                </div>
+            </div>
+
+            <!-- Story & Mint Section -->
+            <div id="storySection" class="hidden fade-in text-left mt-8">
+                <div class="border border-gray-700 rounded-xl p-6 bg-gray-800/50">
+                    <div class="flex items-start gap-4">
+                        <img id="pfp" src="https://placehold.co/80x80/1a202c/ffffff?text=PFP" class="w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-blue-400" alt="Profile Picture">
+                        <div>
+                            <h2 id="ensName" class="text-xl md:text-2xl font-bold">yourname.eth</h2>
+                            <p id="storyOutput" class="text-gray-300 mt-2">Your generated story will appear here...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex flex-col items-center">
+                     <label for="pfpUpload" class="cursor-pointer text-sm text-blue-400 hover:underline mb-4">No PFP? Upload one.</label>
+                     <input type="file" id="pfpUpload" class="hidden" accept="image/*">
+                    <button id="mintBtn" class="w-full max-w-xs px-8 py-4 bg-green-600 hover:bg-green-700 rounded-lg font-bold text-lg transition-all duration-300">
+                        Mint for FREE on Base
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Success Message -->
+            <div id="successMessage" class="hidden fade-in mt-8">
+                <div class="border-2 border-green-500 rounded-xl p-6 bg-green-900/50">
+                    <h2 class="text-2xl font-bold text-green-300 mb-2">Minted Successfully!</h2>
+                    <p class="text-gray-300">Your onchain story is now a permanent part of the Base network.</p>
+                    <a id="txLink" href="https://goerli.basescan.org/tx/0x2f32276c163d27295793542918a38a9a4195f278c4a5292b6b27d4257131654e" target="_blank" rel="noopener noreferrer" class="inline-block mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all">
+                        View Transaction
+                    </a>
+                </div>
+                 <button id="resetBtn" class="mt-6 text-gray-400 hover:text-white transition-all">Start Over</button>
+            </div>
+
+        </div>
+        <footer class="text-center text-gray-500 mt-6 text-sm">
+            Built for the new day on <a href="https://base.org" target="_blank" class="underline hover:text-blue-400">Base</a>.
+        </footer>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const app = document.getElementById('app');
+        const inputSection = document.getElementById('inputSection');
+        const storySection = document.getElementById('storySection');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const successMessage = document.getElementById('successMessage');
+        const generateBtn = document.getElementById('generateBtn');
+        const mintBtn = document.getElementById('mintBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const walletAddressInput = document.getElementById('walletAddress');
+        const storyOutput = document.getElementById('storyOutput');
+        const ensName = document.getElementById('ensName');
+        const pfp = document.getElementById('pfp');
+        const pfpUpload = document.getElementById('pfpUpload');
+
+        // --- Event Listeners ---
+        generateBtn.addEventListener('click', handleGenerate);
+        mintBtn.addEventListener('click', handleMint);
+        resetBtn.addEventListener('click', resetApp);
+        pfpUpload.addEventListener('change', handlePfpUpload);
+
+        // --- Core Logic ---
+
+        async function handleGenerate() {
+            const address = walletAddressInput.value.trim();
+            if (!address) {
+                alert('Please enter a wallet address or ENS name.');
+                return;
+            }
+
+            // 1. Start UI loading state
+            inputSection.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            
+            try {
+                // 2. Simulate fetching on-chain data
+                // In a real app, this would be an API call to Alchemy, Covalent, etc.
+                const mockTransactions = await getMockTransactions(address);
+
+                // 3. Simulate calling the Gemini API to generate the story
+                // In a real app, this would be a backend fetch call.
+                const generatedStory = await generateStoryWithAI(mockTransactions);
+                
+                // 4. Update UI with results
+                ensName.textContent = address.includes('.') ? address : `${address.slice(0, 6)}...${address.slice(-4)}`;
+                storyOutput.textContent = generatedStory;
+
+                // Try to fetch ENS pfp, otherwise use placeholder
+                const ensPfpUrl = `https://metadata.ens.domains/mainnet/avatar/${address}`;
+                pfp.src = ensPfpUrl;
+                pfp.onerror = () => { pfp.src = 'https://placehold.co/80x80/1a202c/ffffff?text=PFP'; };
+
+
+                loadingSpinner.classList.add('hidden');
+                storySection.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error generating story:", error);
+                alert("Something went wrong. Please try again.");
+                resetApp();
+            }
+        }
+
+        function handleMint() {
+            // In a real app, this would trigger a backend process to:
+            // 1. Create metadata JSON (story + image URL).
+            // 2. Upload metadata to IPFS/Arweave.
+            // 3. Call the smart contract's `mintStory` function with the user's address and metadata URL.
+            // Our backend wallet would pay the gas fee here.
+
+            // For the MVP, we just show the success message.
+            storySection.classList.add('hidden');
+            successMessage.classList.remove('hidden');
+        }
+
+        function handlePfpUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    pfp.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function resetApp() {
+            successMessage.classList.add('hidden');
+            storySection.classList.add('hidden');
+            loadingSpinner.classList.add('hidden');
+            inputSection.classList.remove('hidden');
+            walletAddressInput.value = '';
+            pfp.src = 'https://placehold.co/80x80/1a202c/ffffff?text=PFP';
+        }
+
+        // --- Simulated Backend Functions ---
+
+        /**
+         * Simulates fetching transaction data for a wallet.
+         * @param {string} address - The user's wallet address.
+         * @returns {Promise<object>} - A promise that resolves with mock transaction data.
+         */
+        function getMockTransactions(address) {
+            console.log(`Fetching mock transactions for ${address}...`);
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve({
+                        address: address,
+                        totalTransactions: 128,
+                        firstTxDate: "2021-05-12",
+                        commonInteractions: ["Uniswap", "OpenSea", "Aave"],
+                        notableNFTs: ["CryptoPunks", "Bored Ape Yacht Club"],
+                        totalGasSpentEth: 2.15
+                    });
+                }, 1500); // Simulate network delay
+            });
+        }
+
+        /**
+         * Simulates calling a generative AI to create a story.
+         * @param {object} txData - The transaction data.
+         * @returns {Promise<string>} - A promise that resolves with a generated story.
+         */
+        function generateStoryWithAI(txData) {
+            console.log("Generating story with mock AI...");
+            // This is where you would format a prompt and send to the Gemini API.
+            const prompt = `Based on this data: ${JSON.stringify(txData)}, write a fun story.`;
+            console.log("PROMPT:", prompt);
+            
+            // Mocked AI Response
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const story = `An OG from the early days of '21, this wallet has seen it all. From the frantic swaps on Uniswap during DeFi summer to diamond-handing iconic NFTs like CryptoPunks, they've navigated the chaos with skill. Having spent over 2 ETH in gas, they're a true veteran who has paid their dues to the network gods. They are not just a user; they are a builder, a trader, a true onchain pioneer.`;
+                    resolve(story);
+                }, 2000); // Simulate AI generation time
+            });
+        }
+
+    </script>
+</body>
+</html>
